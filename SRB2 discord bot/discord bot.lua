@@ -78,7 +78,6 @@ COM_AddCommand("srb2todc_msg", function(p, pword)
 
 	for i = 1, #messages[DCBOT_SRB2MSG] do
 		if messages[DCBOT_SRB2MSG][i] then
-			print(messages[DCBOT_SRB2MSG][i])
 			file:write(messages[DCBOT_SRB2MSG][i] + "\n")
 			messages[DCBOT_SRB2MSG][i] = nil
 		end
