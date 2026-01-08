@@ -222,7 +222,7 @@ COM_AddCommand("dctosrb2_load", function(p, pword, buffer)
 			end
 
 			if foundsomething then
-				io.openlocal("client/srb2-chatbot/discord-messages.txt", "w"):close()
+				io.openlocal("client/srb2-chatbot/commands.txt", "w"):close()
 			end
 		end
 	end
