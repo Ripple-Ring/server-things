@@ -95,9 +95,9 @@ async def on_message(message):
         return
 
     os.makedirs(srb2path.joinpath(Path("luafiles/client/srb2-chatbot")), exist_ok=True)
-    if message.content.startswith("!"):
+    if message.content.startswith("!") \
+    and message.author.guild_permissions.administrator:
         cmd = message.content[1:] + "\n"
-        print(cmd)
 
         filepath = srb2path.joinpath(Path("luafiles/client/srb2-chatbot/commands.txt"))
         filepath.touch(exist_ok=True)
