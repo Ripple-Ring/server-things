@@ -10,7 +10,11 @@ intents.message_content = True
 
 channel = None
 
-@tasks.loop(seconds=1)
+path = Path("~/.srb2/luafiles/client/srb2-chatbot/srb2-messages.txt").expanduser()
+if path.exists():
+    os.remove(path)
+
+@tasks.loop(seconds=0.5)
 async def checkMessages(bot):
     global channel
         
@@ -36,8 +40,8 @@ class srb2Bot(commands.Bot):
         global channel
 
         with open("channel.txt", "r", encoding="utf-8") as input_file:
-            channelid = input_file.read()
-        channel = self.get_channel(channelid)
+            channelid = input_file.read().strip()
+        channel = self.get_channel(int(channelid))
 
         if not channel:
             sys.exit()
@@ -47,6 +51,22 @@ bot = srb2Bot(command_prefix="!", intents=intents)
 @checkMessages.before_loop
 async def before_my_task():
     await bot.wait_until_ready()  # wait until the bot is ready
+
+@bot.listen('on_message')
+async def handle_discordToSRB2(message):
+    if message.author == bot.user:
+        return
+
+    if message.content.startswith("!"):
+        print("send to srb2 l8r")
+    else:
+        username = message.author.nick or message.author.global_name or message.author.name
+        os.makedirs(Path("~/.srb2/luafiles/client/srb2-chatbot").expanduser(), exist_ok=True)
+        
+        filepath = Path("~/.srb2/luafiles/client/srb2-chatbot/discord-messages.txt").expanduser()
+        filepath.touch(exist_ok=True)
+        with open(filepath, "a", encoding="utf-8") as output:
+            output.write("{{" + str(username) + "}} = {{" + str(message.content) + "}}\n")
 
 """
 @bot.command()
