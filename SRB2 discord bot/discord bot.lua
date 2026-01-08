@@ -24,7 +24,7 @@ local discord_localmsgs = {} -- the local messages read from the discord thing
 
 addHook("NetVars", function(net)
     password = net($)
-    messages.globalvars = net($)
+    messages = net($)
 end)
 
 ---@param p player_t
@@ -48,7 +48,7 @@ addHook("PlayerMsg", function(p, type, _, msg)
         message = "CSAY > " + msg
     end
 
-    messages.globalvars[DCBOT_SRB2MSG][#messages.globalvars[DCBOT_SRB2MSG]+1] = message
+    messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = message
     COM_BufAddText(server, "srb2todc_msg " + password)
 end)
 
@@ -57,6 +57,7 @@ COM_AddCommand("srb2todc_msg", function(p, pword)
     or not #messages[DCBOT_SRB2MSG]
     or tonumber(pword) ~= password then return end
 
+    print(#messages[DCBOT_SRB2MSG])
     local file = io.openlocal("client/srb2-chatbot/srb2-messages.txt", "a")
 
     if not file then return end
@@ -69,7 +70,9 @@ COM_AddCommand("srb2todc_msg", function(p, pword)
     end
 
     file:close()
-end)
+end, COM_LOCAL)
+
+addHook("GameQuit")
 
 local discord_prefix = "\132[DISCORD]\128 "
 local discord_format = "<%s> %s"
