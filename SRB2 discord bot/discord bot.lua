@@ -17,6 +17,7 @@ local dc_checkdelay = CV_RegisterVar({ -- TODO: work on cvars l8r
 })
 
 local rejointimeout = CV_FindVar("rejointimeout")
+local maxplayers = CV_FindVar("maxplayers")
 
 local has_started = false -- has the server started already?
 local messages = {
@@ -111,6 +112,20 @@ end
 addHook("ThinkFrame", function()
 	if (leveltime % (FixedRound(TICRATE*dc_checkdelay.value)/FU) ) == 0 then
 		COM_BufAddText(server, "dctosrb2_load " + password)
+
+		if isServer() then
+			local pcount = 0
+			for p in players.iterate do
+				pcount = $+1
+			end
+
+			local file = io.openlocal("client/srb2-chatbot/player-count.txt", "w")
+
+			if not file then return end
+
+			file:write(pcount + "/" + maxplayers.value)
+			file:close()
+		end
 	end
 
 	if not has_started then
@@ -177,25 +192,39 @@ COM_AddCommand("dctosrb2_load", function(p, pword, buffer)
 		addToBuffer("dctosrb2_msg " + password + " 1")
 	else
 		local file = io.openlocal("client/srb2-chatbot/discord-messages.txt", "r")
+		local cmd_file = io.openlocal("client/srb2-chatbot/commands.txt", "r")
 
-		if not file then return end
+		if file then
+			local foundsomething = false
+			for line in file:lines("a") do
+				for user, msg in line:gmatch("{{(.+)}} = {{(.+)}}") do
+					if #msg > 255 then
+						msg = msg:sub(1, 252) + "..."
+					end
 
-		local foundsomething = false
-		for line in file:lines("a") do
-			for user, msg in line:gmatch("{{(.+)}} = {{(.+)}}") do
-				if #msg > 255 then
-					msg = msg:sub(1, 252) + "..."
+					discord_localmsgs[#discord_localmsgs+1] = discord_format:format(user, msg)
+					foundsomething = true
 				end
+			end
 
-				discord_localmsgs[#discord_localmsgs+1] = discord_format:format(user, msg)
-				foundsomething = true
+			if foundsomething then
+				io.openlocal("client/srb2-chatbot/discord-messages.txt", "w"):close()
+				COM_BufAddText(server, "dctosrb2_load " + password + " g")
 			end
 		end
 
-		if not foundsomething then return end
+		if cmd_file then
+			local foundsomething = false
+			for line in cmd_file:lines("a") do
+				foundsomething = true
 
-		io.openlocal("client/srb2-chatbot/discord-messages.txt", "w"):close()
-		COM_BufAddText(server, "dctosrb2_load " + password + " g")
+				addToBuffer(line)
+			end
+
+			if foundsomething then
+				io.openlocal("client/srb2-chatbot/discord-messages.txt", "w"):close()
+			end
+		end
 	end
 end, COM_LOCAL)
 
@@ -221,7 +250,7 @@ addHook("PlayerThink", function(p)
 	and p.quittime == 0 then
 		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, "has rejoined the game")
 		COM_BufAddText(server, "srb2todc_msg " + password)
-	elseif p.quittime == 1 then
+	elseif p.quittime == 2 then
 		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, "left the game")
 		COM_BufAddText(server, "srb2todc_msg " + password)
 	elseif p.jointime == 1 then
