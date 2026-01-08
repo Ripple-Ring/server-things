@@ -18,9 +18,8 @@ async def checkMessages(bot):
         print("uh oh!")
         return
 
-    path = Path("~/.srb2/luafiles/client/srb2-chatbot/messages.txt").expanduser()
+    path = Path("~/.srb2/luafiles/client/srb2-chatbot/srb2-messages.txt").expanduser()
     if path.exists():
-        path = Path("~/.srb2/luafiles/client/srb2-chatbot/messages.txt").expanduser()
         with open(path, "r", encoding="utf-8") as messagelist:
             msglist = messagelist.readlines()
         
