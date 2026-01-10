@@ -2,7 +2,6 @@
 # poorly thought out code, attack !!
 
 import sys
-import shlex
 import subprocess
 import json
 from enum import Enum
@@ -60,9 +59,9 @@ async def start_server(interaction: discord.Interaction, server: Servers):
         if isinstance(process, list):
             processList[server] = []
             for p in process:
-                processList[server].append(subprocess.Popen(shlex.split(p), stdin=subprocess.PIPE))
+                processList[server].append(subprocess.Popen(p, stdin=subprocess.PIPE, shell=True))
         else:
-            processList[server] = subprocess.Popen(shlex.split(process), stdin=subprocess.PIPE)
+            processList[server] = subprocess.Popen(process, stdin=subprocess.PIPE, shell=True)
             
         await interaction.response.send_message("starting server")
     else:
