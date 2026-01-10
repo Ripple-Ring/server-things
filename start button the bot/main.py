@@ -56,7 +56,14 @@ async def start_server(interaction: discord.Interaction, server: Servers):
     server = server.value
 
     if not processList.get(server):
-        processList[server] = subprocess.Popen(config["servers"][server], stdin=subprocess.PIPE, shell=True)
+        process = config["servers"][server]
+        if isinstance(process, list):
+            processList[server] = []
+            for p in process:
+                processList[server].append(subprocess.Popen(shlex.split(p), stdin=subprocess.PIPE))
+        else:
+            processList[server] = subprocess.Popen(shlex.split(process), stdin=subprocess.PIPE)
+            
         await interaction.response.send_message("starting server")
     else:
         await interaction.response.send_message("the server is already active")
