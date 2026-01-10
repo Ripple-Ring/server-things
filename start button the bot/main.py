@@ -32,7 +32,13 @@ with open(config_file) as cfg:
     cfg_read = cfg.read()
 
 config = json.loads(cfg_read)
-Servers = Enum("Servers", config["servers"])
+
+enum_list = {}
+processList = {}
+for name in config["servers"]:
+    enum_list[name] = name # productive
+
+Servers = Enum("Servers", enum_list)
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -49,8 +55,8 @@ GUILD_ID = int(config["guild_id"])
 async def start_server(interaction: discord.Interaction, server: Servers):
     server = server.value
 
-    if not client.processList.get(server):
-        client.processList[server] = subprocess.Popen(shlex.split(server), stdin=subprocess.PIPE)
+    if not processList.get(server):
+        processList[server] = subprocess.Popen(config["servers"][server], stdin=subprocess.PIPE, shell=True)
         await interaction.response.send_message("starting server")
     else:
         await interaction.response.send_message("the server is already active")
