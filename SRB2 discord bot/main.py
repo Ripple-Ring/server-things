@@ -119,4 +119,7 @@ async def read_file(ctx):
 with open("token.txt", "r", encoding="utf-8") as input_file:
     token = input_file.read()
 
+if not token:
+    sys.exit()
+
 bot.run(token)
