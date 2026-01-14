@@ -115,7 +115,7 @@ addHook("ThinkFrame", function()
 
 		if isServer() then
 			local pcount = 0
-			for p in players.iterate do
+			for _ in players.iterate do
 				pcount = $+1
 			end
 
@@ -283,5 +283,11 @@ addHook("PlayerQuit", function(p, reason)
 	end
 
 	messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, msg)
+	COM_BufAddText(server, "srb2todc_msg " + password)
+end)
+
+---@param id integer
+addHook("MapChange", function(id)
+	messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = "Speeding off to "+G_BuildMapTitle(id)+"!"
 	COM_BufAddText(server, "srb2todc_msg " + password)
 end)

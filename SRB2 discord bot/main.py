@@ -2,9 +2,15 @@ import sys
 import os
 import datetime
 from pathlib import Path
+from modules.config import BotConfig
 
 import discord
 from discord.ext import commands, tasks
+
+config = BotConfig(Path("config.cfg"))
+
+if not config.srb2_path.exists():
+    sys.exit("Oops! You've supplied an invalid path for SRB2!")
 
 # TODO:
 # - make a cfg file
@@ -16,20 +22,14 @@ intents.message_content = True
 channel = None
 start_time = datetime.datetime.now()
 
-srb2path = Path("~/.srb2").expanduser()
+srb2path = config.srb2_path
 
 path = srb2path.joinpath(Path("luafiles/client/srb2-chatbot/srb2-messages.txt"))
 if path.exists():
     os.remove(path)
 
 @tasks.loop(seconds=0.5)
-async def checkMessages(bot):
-    global channel
-        
-    if not channel:
-        print("uh oh!")
-        return
-
+async def checkMessages(self):
     path = srb2path.joinpath(Path("luafiles/client/srb2-chatbot/srb2-messages.txt"))
     if path.exists():
         with open(path, "r", encoding="utf-8") as messagelist:
@@ -38,11 +38,29 @@ async def checkMessages(bot):
         os.remove(path)
 
         for message in msglist:
-            await channel.send(message)
+            for channel in self.channelList:
+                await channel.send(message)
+    
+    latestlog = srb2path.joinpath(Path("latest-log.txt"))
+    if latestlog.exists() \
+    and len(self.log_channelList) > 0:
+        with open(latestlog, "r", encoding="utf-8") as logs:
+            loglines: list = logs.readlines()
+        
+        start_line = self.log_startLine or 0
+        for i in range(start_line, len(loglines)):
+            if not loglines[i] \
+            or not len(loglines[i].strip()):
+                continue
+
+            self.log_startLine = i+1
+            for channel in self.log_channelList:
+                await channel.send(loglines[i])
+
 
 plyr_count = None
 @tasks.loop(seconds=0.5)
-async def checkPlayerCount(bot):
+async def checkPlayerCount(self):
     global plyr_count
 
     path = srb2path.joinpath(Path("luafiles/client/srb2-chatbot/player-count.txt"))
@@ -56,21 +74,34 @@ async def checkPlayerCount(bot):
             global start_time
 
             plyr_count = cur_count
-            await bot.change_presence(activity=discord.Game(name=f'with {cur_count} players!', start=start_time))
+            await self.change_presence(activity=discord.Game(name=f'with {cur_count} players!', start=start_time))
 
 class srb2Bot(commands.Bot):
+    log_startLine = 0
+    channelList: list = []
+    log_channelList: list = []
+
     async def setup_hook(self):  # setup_hook is called before the bot starts
         checkMessages.start(self)
         checkPlayerCount.start(self)
 
     async def on_ready(self):
-        global channel
+        self.channelList = []
+        self.log_channelList = []
 
-        with open("channel.txt", "r", encoding="utf-8") as input_file:
-            channelid = input_file.read().strip()
-        channel = self.get_channel(int(channelid))
+        foundChannel = False
+        for channelid in config.channel_ids:
+            channel: discord.GuildChannel = self.get_channel(int(channelid))
+            if channel:
+                self.channelList.append(self.get_channel(int(channelid)))
+                foundChannel = True
+        
+        for channelid in config.log_channel_ids:
+            channel: discord.GuildChannel = self.get_channel(int(channelid))
+            if channel:
+                self.log_channelList.append(self.get_channel(int(channelid)))
 
-        if not channel:
+        if not foundChannel:
             sys.exit()
 
 bot = srb2Bot(command_prefix="!", intents=intents)
@@ -110,16 +141,7 @@ async def on_message(message):
         with open(filepath, "a", encoding="utf-8") as output:
             output.write("{{" + str(username) + "}} = {{" + str(message.content) + "}}\n")
 
-"""
-@bot.command()
-async def read_file(ctx):
-    await ctx.send("hi")
-"""
-
-with open("token.txt", "r", encoding="utf-8") as input_file:
-    token = input_file.read()
-
-if not token:
+if not config.token:
     sys.exit()
 
-bot.run(token)
+bot.run(config.token)
