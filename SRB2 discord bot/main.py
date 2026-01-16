@@ -41,7 +41,7 @@ async def checkMessages(self):
             for channel in self.channelList:
                 await channel.send(message)
     
-    latestlog = srb2path.joinpath(Path("latest-log.txt"))
+"""    latestlog = srb2path.joinpath(Path("latest-log.txt"))
     if latestlog.exists() \
     and len(self.log_channelList) > 0:
         with open(latestlog, "r", encoding="utf-8") as logs:
@@ -55,7 +55,7 @@ async def checkMessages(self):
 
             self.log_startLine = i+1
             for channel in self.log_channelList:
-                await channel.send(loglines[i])
+                await channel.send(loglines[i])"""
 
 
 plyr_count = None
