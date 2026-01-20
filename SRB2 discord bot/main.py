@@ -40,23 +40,6 @@ async def checkMessages(self):
         for message in msglist:
             for channel in self.channelList:
                 await channel.send(message)
-    
-"""    latestlog = srb2path.joinpath(Path("latest-log.txt"))
-    if latestlog.exists() \
-    and len(self.log_channelList) > 0:
-        with open(latestlog, "r", encoding="utf-8") as logs:
-            loglines: list = logs.readlines()
-        
-        start_line = self.log_startLine or 0
-        for i in range(start_line, len(loglines)):
-            if not loglines[i] \
-            or not len(loglines[i].strip()):
-                continue
-
-            self.log_startLine = i+1
-            for channel in self.log_channelList:
-                await channel.send(loglines[i])"""
-
 
 plyr_count = None
 @tasks.loop(seconds=0.5)
@@ -121,8 +104,13 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if message.channel != channel \
-    or not channel:
+    isChannel = False
+    for channel in bot.channelList:
+        if message.channel == channel:
+            isChannel = True
+            break
+    
+    if not isChannel:
         return
 
     os.makedirs(srb2path.joinpath(Path("luafiles/client/srb2-chatbot")), exist_ok=True)
