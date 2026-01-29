@@ -46,7 +46,7 @@ Servers = Enum("Servers", enum_list)
 def screen_present(name): # thnak yuo https://stackoverflow.com/a/8102399
     var = subprocess.check_output(["screen -ls; true"],shell=True)
 
-    return ("."+name+"\t(" in str(var))
+    return ("."+name+"\\t(" in str(var))
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
