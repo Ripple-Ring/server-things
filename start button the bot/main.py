@@ -23,6 +23,10 @@ if not config_file.exists():
             "servers": {
                 "SRB2": "srb2 -dedicated",
                 "SRB2: 2": "srb2 -dedicated"
+            },
+            "screen_names": {
+                "SRB2": "srb2",
+                "SRB2: 2": "srb22"
             }
         }, sort_keys=True, indent=4))
     sys.exit()
@@ -32,7 +36,12 @@ with open(config_file) as cfg:
 
 config = json.loads(cfg_read)
 
-Servers = Enum("Servers", config["servers"])
+enum_list = {}
+processList = {}
+for name in config["servers"]:
+    enum_list[name] = name
+
+Servers = Enum("Servers", enum_list)
 
 def screen_present(name): # thnak yuo https://stackoverflow.com/a/8102399
     var = subprocess.check_output(["screen -ls; true"],shell=True)
@@ -52,8 +61,11 @@ GUILD_ID = int(config["guild_id"])
 )
 @app_commands.describe(server_enum="the server you wanna start")
 async def start_server(interaction: discord.Interaction, server_enum: Servers):
-    name = server_enum.name
-    server = server_enum.value
+    name = server_enum.value
+    if config.get("screen_names") and config["screen_names"].get(name):
+        name = config["screen_names"][name]
+    
+    server = config["servers"][name]
 
     if not screen_present(name):
         subprocess.Popen("screen -dmS \""+name+"\" bash -c \""+server+'"')
