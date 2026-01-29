@@ -32,12 +32,12 @@ with open(config_file) as cfg:
 
 config = json.loads(cfg_read)
 
-enum_list = {}
-processList = {}
-for name in config["servers"]:
-    enum_list[name] = name # productive
+Servers = Enum("Servers", config["servers"])
 
-Servers = Enum("Servers", enum_list)
+def screen_present(name): # thnak yuo https://stackoverflow.com/a/8102399
+    var = subprocess.check_output(["screen -ls; true"],shell=True)
+
+    return ("."+name+"\t(" in var)
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -51,17 +51,12 @@ GUILD_ID = int(config["guild_id"])
     guild=discord.Object(id=GUILD_ID)
 )
 @app_commands.describe(server="the server you wanna start")
-async def start_server(interaction: discord.Interaction, server: Servers):
-    server = server.value
+async def start_server(interaction: discord.Interaction, server_enum: Servers):
+    name = server_enum.name
+    server = server_enum.value
 
-    if not processList.get(server):
-        process = config["servers"][server]
-        if isinstance(process, list):
-            processList[server] = []
-            for p in process:
-                processList[server].append(subprocess.Popen(p, stdin=subprocess.PIPE, shell=True))
-        else:
-            processList[server] = subprocess.Popen(process, stdin=subprocess.PIPE, shell=True)
+    if not screen_present(name):
+        subprocess.Popen("screen -dmS \""+name+"\" bash -c \""+server+'"')
             
         await interaction.response.send_message("starting server")
     else:
