@@ -50,7 +50,7 @@ GUILD_ID = int(config["guild_id"])
     description="Starts a server.",
     guild=discord.Object(id=GUILD_ID)
 )
-@app_commands.describe(server="the server you wanna start")
+@app_commands.describe(server_enum="the server you wanna start")
 async def start_server(interaction: discord.Interaction, server_enum: Servers):
     name = server_enum.name
     server = server_enum.value
