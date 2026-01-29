@@ -62,10 +62,10 @@ GUILD_ID = int(config["guild_id"])
 @app_commands.describe(server_enum="the server you wanna start")
 async def start_server(interaction: discord.Interaction, server_enum: Servers):
     name = server_enum.value
+    server = config["servers"][name]
+    
     if config.get("screen_names") and config["screen_names"].get(name):
         name = config["screen_names"][name]
-    
-    server = config["servers"][name]
 
     if not screen_present(name):
         subprocess.Popen("screen -dmS \""+name+"\" bash -c \""+server+'"')
