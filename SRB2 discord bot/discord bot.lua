@@ -242,19 +242,19 @@ end)
 ---@class player_t
 ---@field lastquittime tic_t
 
-local joinquit_format = "**%s** %s"
+local joinquit_format = "**%s** (%d) %s"
 
 ---@param p player_t
 addHook("PlayerThink", function(p)
 	if p.lastquittime
 	and p.quittime == 0 then
-		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, "has rejoined the game")
+		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, #p, "has rejoined the game")
 		COM_BufAddText(server, "srb2todc_msg " + password)
 	elseif p.quittime == 2 then
-		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, "left the game")
+		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, #p, "left the game")
 		COM_BufAddText(server, "srb2todc_msg " + password)
 	elseif p.jointime == 1 then
-		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, "has joined the game")
+		messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, #p, "has joined the game")
 		COM_BufAddText(server, "srb2todc_msg " + password)
 	end
 
@@ -282,7 +282,7 @@ addHook("PlayerQuit", function(p, reason)
 		msg = "has been banned"
 	end
 
-	messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, msg)
+	messages[DCBOT_SRB2MSG][#messages[DCBOT_SRB2MSG]+1] = joinquit_format:format(p.name, #p, msg)
 	COM_BufAddText(server, "srb2todc_msg " + password)
 end)
 
